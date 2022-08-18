@@ -1,6 +1,8 @@
 # Serial-Reaction-Time-Task-SRTT-Online-Experiment
 This the first project I completed as a PhD student. Due to COVID-19, the data for this project was acquired entirely online and it allowed us to study the effect of learning using the standard Serial Reaction Time Task (SRTT) in an online environment.
 
+The SRTT task was build using labs.js (https://lab.js.org/) and was deployed using Qualtrics online via the UC Merced SONA system. Subjects took part in the study and earned extra course credit after the completion of the task.
+
 Project aims: testing the effect of task instructions in an SRTT paradigm by randomly assigning participants to the explicit or implicit learning conditions, while making use of both the auditory and visual stimuli;and to determine whether the SRTT paradigm can be employed online to study sequence learning.
 
 There are 4 different R analysis files here:
