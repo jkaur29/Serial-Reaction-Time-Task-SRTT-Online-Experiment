@@ -1,0 +1,220 @@
+---
+title: "Acc. Data Viz_Reviewer Comments"
+author: "Jaskanwaljeet Kaur"
+date: "4/23/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#EXPLICIT LEARNING DATA:
+```{r}
+library(lme4)
+library(broom)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(tidyverse)
+library(optimx)
+library(parallel)
+library(minqa)
+library(report)
+library(ggExtra)
+library(ggstatsplot)
+library(sjmisc)
+library(emmeans)
+library(plotrix)
+
+setwd("~/Desktop/Test SRT")
+explicit_data <- read.csv("EL_Accuracy_data_for_analysis.csv")
+print(explicit_data)
+```
+```{r}
+tt <- t.test(explicit_data$accuracy_int, conf.level = 0.95)
+tt
+
+#The confidence interval that is being calculated here is ONLY FOR THE ACCURACY DATA! The reaction time data (in the other r markdown file has it's own standard error data!)
+explicit_data_ci <- explicit_data %>%
+  group_by(Block_number_num) %>%
+  summarise(
+    accuracy_mean = mean(accuracy_int),
+    medianrt_mean = mean(median.rt),
+    accuracy_standdeviation = sd(accuracy_int),
+    accuracy_standerror = std.error(accuracy_int),
+    lci = t.test(accuracy_int, conf.level = 0.95)$conf.int[1],
+    uci = t.test(accuracy_int, conf.level = 0.95)$conf.int[2])
+explicit_data_ci
+```
+
+```{r}
+#Using the code below for plotting purposes:
+vec2 <- c("Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual")
+explicit_data_ci$Part_Type <- vec2
+explicit_data_ci
+
+vec3 <- c("Block1", "Block1", "Block2", "Block2", "Block3" , "Block3", "Block4", "Block4", "Block5", "Block5", "Block6", "Block6", "Block7", "Block7", "Block8", "Block8", "Block9", "Block9", "Blockten", "Blockten")
+explicit_data_ci$blocktype <-vec3
+explicit_data_ci
+
+vec4 <- c("Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training")
+explicit_data_ci$learningcondition <-vec4
+explicit_data_ci
+```
+#Let's split the training and testing data for the explicit learning condition:
+```{r}
+vec5 <- c("explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning","explicitlearning")
+explicit_data_ci$learningtype <- vec5
+explicit_data_ci
+
+#Let's get rid of the testing data (AO), so that we are only left with the training data:
+explicit_training_acc_dataonly <- explicit_data_ci[!(explicit_data_ci$Block_number_num == "1_A" | explicit_data_ci$Block_number_num == "2_A" | explicit_data_ci$Block_number_num == "3_A" | explicit_data_ci$Block_number_num == "4_A"| explicit_data_ci$Block_number_num == "5_A"| explicit_data_ci$Block_number_num == "6_A" | explicit_data_ci$Block_number_num == "7_A" | explicit_data_ci$Block_number_num == "8_A" | explicit_data_ci$Block_number_num == "9_A" | explicit_data_ci$Block_number_num == "ten_A"),]
+print(explicit_training_acc_dataonly)
+
+#Let's get rid of the training data (AV), so that we are only left with the training data:
+explicit_testing_acc_dataonly <- explicit_data_ci[!(explicit_data_ci$Block_number_num == "1_AV" | explicit_data_ci$Block_number_num == "2_AV" | explicit_data_ci$Block_number_num == "3_AV" | explicit_data_ci$Block_number_num == "4_AV"| explicit_data_ci$Block_number_num == "5_AV"| explicit_data_ci$Block_number_num == "6_AV" | explicit_data_ci$Block_number_num == "7_AV" | explicit_data_ci$Block_number_num == "8_AV" | explicit_data_ci$Block_number_num == "9_AV" | explicit_data_ci$Block_number_num == "ten_AV"),]
+print(explicit_testing_acc_dataonly)
+```
+
+
+
+
+
+#IMPLICIT LEARNING DATA:
+```{r}
+implicit_data <- read.csv("IL_Accuracy_data_for_analysis.csv")
+print(implicit_data)
+
+tt_implicit <- t.test(implicit_data$accuracy_int, conf.level = 0.95)
+tt_implicit
+
+#The confidence interval that is being calculated here is ONLY FOR THE ACCURACY DATA! The reaction time data (in the other r markdown file has it's own standard error data!)
+implicit_data_ci <- implicit_data %>%
+  group_by(Block_number_num) %>%
+  summarise(
+    accuracy_mean = mean(accuracy_int),
+    medianrt_mean = mean(median.rt),
+    accuracy_standdeviation = sd(accuracy_int),
+    accuracy_standerror = std.error(accuracy_int),
+    lci = t.test(accuracy_int, conf.level = 0.95)$conf.int[1],
+    uci = t.test(accuracy_int, conf.level = 0.95)$conf.int[2])
+implicit_data_ci
+```
+
+```{r}
+#Using the code below for plotting purposes:
+vec6 <- c("Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual")
+implicit_data_ci$Part_Type <- vec6
+implicit_data_ci
+
+vec7 <- c("Block1", "Block1", "Block2", "Block2", "Block3" , "Block3", "Block4", "Block4", "Block5", "Block5", "Block6", "Block6", "Block7", "Block7", "Block8", "Block8", "Block9", "Block9", "Blockten", "Blockten")
+implicit_data_ci$blocktype <-vec7
+implicit_data_ci
+
+vec8 <- c("Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training","Testing", "Training")
+implicit_data_ci$learningcondition <-vec8
+implicit_data_ci
+```
+#Let's split the training and the testing data for the explicit learning condition:
+```{r}
+vec9 <- c("implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning","implicitlearning")
+implicit_data_ci$learningtype <- vec9
+implicit_data_ci
+
+#Let's get rid of the testing data (AO), so that we are only left with the training data:
+implicit_training_acc_dataonly <- implicit_data_ci[!(implicit_data_ci$Block_number_num == "1_A" | implicit_data_ci$Block_number_num == "2_A" | implicit_data_ci$Block_number_num == "3_A" | implicit_data_ci$Block_number_num == "4_A"| implicit_data_ci$Block_number_num == "5_A"| implicit_data_ci$Block_number_num == "6_A" | implicit_data_ci$Block_number_num == "7_A" | implicit_data_ci$Block_number_num == "8_A" | implicit_data_ci$Block_number_num == "9_A" | implicit_data_ci$Block_number_num == "ten_A"),]
+print(implicit_training_acc_dataonly)
+
+#Let's get rid of the training data (AV), so that we are only left with the training data:
+implicit_testing_acc_dataonly <- implicit_data_ci[!(implicit_data_ci$Block_number_num == "1_AV" | implicit_data_ci$Block_number_num == "2_AV" | implicit_data_ci$Block_number_num == "3_AV" | implicit_data_ci$Block_number_num == "4_AV"| implicit_data_ci$Block_number_num == "5_AV"| implicit_data_ci$Block_number_num == "6_AV" | implicit_data_ci$Block_number_num == "7_AV" | implicit_data_ci$Block_number_num == "8_AV" | implicit_data_ci$Block_number_num == "9_AV" | implicit_data_ci$Block_number_num == "ten_AV"),]
+print(implicit_testing_acc_dataonly)
+```
+#Let's rbind the TRAINING data for plotting here:
+```{r}
+training_acc_data <- rbind(explicit_training_acc_dataonly, implicit_training_acc_dataonly)
+print(training_acc_data)
+```
+#We're now going to plot the training data here:
+```{r}
+training_acc_data_plot <- ggplot(training_acc_data, aes(blocktype, accuracy_mean, group=learningtype))+
+  geom_ribbon(aes(ymin = accuracy_mean-accuracy_standerror, ymax = accuracy_mean+accuracy_standerror,fill=learningtype), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=learningtype))+
+  geom_point(aes(color=learningtype), size=2.5) +
+  xlab("Block Number") +
+  ylab("Accuracy (%Correct)") +
+  ggtitle("(c)   Training Phase: Accuracy Across Participants")+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  theme_pubclean() +
+  theme(legend.position="bottom", legend.background = element_rect(fill = "white", color = "black")) +
+  theme(axis.text.x=element_text(angle=40,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  annotate("rect", xmin = 0.5, xmax = 1.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 5.5, xmax = 6.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 9.5, xmax = 10.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1, y=1, label=paste("Block",1), color="black") +
+  annotate("text", x=6, y=1, label=paste("Block",6), color="black") +
+  annotate("text", x=10, y=1, label=paste("Block",10), color="black") +
+  annotate("text", x=10, y=0.995, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=0.995, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1, y=0.995, label=paste("(Catch)"), color="black") +
+  annotate("text", x=3.5, y=1, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=3.5, y=0.995, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=8, y=1, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=8, y=0.995, label=paste("(Sequential)"), color="black") +
+  scale_x_discrete(breaks = c("Block1", "Block2","Block3","Block4","Block5","Block6","Block7","Block8","Block9","Blockten"),
+                   labels = c("Block 1", "Block 2","Block 3","Block 4","Block 5","Block 6","Block 7","Block 8","Block 9","Block 10")) + scale_color_manual(name="Learning Condition:",
+                     labels=c("Explicit Learning", "Implicit Learning"),
+                     values=c("tomato", "turquoise3"))
+training_acc_data_plot
+
+#Use the following code to save this image in 300DPI for publication purposes:
+#ggsave(file="training_acc_data_plot.pdf", width = 7, height = 5, training_acc_data_plot) #saves the first and second trials protocols (no load/bo load conditions) training_acc_data_plot
+```
+#Let's rbind the TESTING data for plotting here:
+```{r}
+testing_acc_data <- rbind(explicit_testing_acc_dataonly, implicit_testing_acc_dataonly)
+print(testing_acc_data)
+```
+
+
+```{r}
+testing_acc_data_plot <- ggplot(testing_acc_data, aes(blocktype, accuracy_mean, group=learningtype))+
+  geom_ribbon(aes(ymin = accuracy_mean-accuracy_standerror, ymax = accuracy_mean+accuracy_standerror,fill=learningtype), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=learningtype))+
+  geom_point(aes(color=learningtype), size=2.5) +
+  xlab("Block Number") +
+  ylab("Accuracy (%Correct)") +
+  ggtitle("(d)   Testing Phase: Accuracy Across Participants")+
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+  theme_pubclean() +
+  theme(legend.position="bottom", legend.background = element_rect(fill = "white", color = "black")) +
+  theme(axis.text.x=element_text(angle=40,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  annotate("rect", xmin = 0.5, xmax = 1.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 5.5, xmax = 6.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 9.5, xmax = 10.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1, y=0.7, label=paste("Block",1), color="black") +
+  annotate("text", x=6, y=0.7, label=paste("Block",6), color="black") +
+  annotate("text", x=10, y=0.7, label=paste("Block",10), color="black") +
+  annotate("text", x=10, y=0.684, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=0.684, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1, y=0.684, label=paste("(Catch)"), color="black") +
+  annotate("text", x=3.5, y=0.7, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=3.5, y=0.684, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=8, y=0.7, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=8, y=0.684, label=paste("(Sequential)"), color="black") +
+  scale_x_discrete(breaks = c("Block1", "Block2","Block3","Block4","Block5","Block6","Block7","Block8","Block9","Blockten"),
+                   labels = c("Block 1", "Block 2","Block 3","Block 4","Block 5","Block 6","Block 7","Block 8","Block 9","Block 10")) + scale_color_manual(name="Learning Condition:",
+                     labels=c("Explicit Learning", "Implicit Learning"),
+                     values=c("tomato", "turquoise3"))
+testing_acc_data_plot
+
+
+#Use the following code to save this image in 300DPI for publication purposes:
+#ggsave(file="testing_acc_data_plot.pdf", width = 7, height = 5, testing_acc_data_plot) #saves the first and second trials protocols (no load/bo load conditions) testing_acc_data_plot
+```
+
+
+
+

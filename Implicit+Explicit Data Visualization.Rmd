@@ -1,0 +1,504 @@
+---
+title: "Untitled"
+author: "Jaskanwaljeet Kaur"
+date: "5/4/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##EXPLICIT LEARNING DATA VISUALIZATION:
+```{r}
+library(lme4)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(Hmisc)
+library(remotes)
+library(ggstatsplot)
+
+setwd("~/Desktop/Test SRT")
+explicit_data <- read.csv("Explicit Learning Data For Analysis.csv")
+
+implicit_data <- read.csv("Implicit Learning Data For Analysis.csv") #use for later, when visualizing data for implicit learning group!
+
+print(explicit_data)
+```
+```{r}
+x1_labels <- c("","Block 1","","Block 2","","Block 3","","Block 4","","Block 5","","Block 6","","Block 7","","Block 8","","Block 9","","Block 10")
+
+p0 <- ggplot(explicit_data) +
+  geom_point(aes(x=Block_number_num, y=rt, color = Part_Type), alpha = 10) +
+  geom_smooth(aes(x=Block_number_num, y=rt, color = Part_Type)) +
+  geom_violin(aes(x=Block_number_num, y=rt, color = Part_Type)) +
+  geom_jitter(aes(x=Block_number_num, y=rt, color = Part_Type)) +
+  xlab("Block Number") +
+  ylab("Median Reaction Time (msec)") +
+  ggtitle("Explicit Learning: Median Reaction Time-Across All Subjects") +
+  theme_bw() +
+  theme(legend.position="bottom")+
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = x1_labels) +
+  ylim(0, 1500) +
+  annotate("rect", xmin = 0.5, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 10.5, xmax = 12.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 18.5, xmax = 20.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=19.5, y=1500, label=paste("(Catch)"), color="black") +
+  annotate("text", x=11.5, y=1500, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1.5, y=1500, label=paste("(Catch)"), color="black") +
+   scale_color_manual(name="Part Type:",
+                     labels=c("Auditory Only", "Auditory+Visual"),
+                     values=c("red", "blue"))
+p0
+
+#Boxplot:
+boxplot(rt ~ Block_number_num, data = explicit_data, col = "pink", xlab = "Block Number", ylab = "Median Reaction Time (msec)", main = "Explicit Learning: Median Reaction Time-Across All Subjects", ylim = range(0:1500))
+```
+```{r}
+explicit_data_new <- explicit_data %>% 
+group_by(Block_number_num) %>%
+summarise_at(vars(rt, mean.rt, sd.rt, sterr),
+               list(avg = mean))
+print(explicit_data_new)
+
+#Using the code below for plotting purposes:
+vec2 <- c("Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual")
+explicit_data_new$Part_Type <- vec2
+explicit_data_new
+```
+#Lets keep only the AV data here:
+```{r}
+p0_new_newplot <- explicit_data_new[!(explicit_data_new$Block_number_num == "1_A" | explicit_data_new$Block_number_num == "2_A" | explicit_data_new$Block_number_num == "3_A" | explicit_data_new$Block_number_num == "4_A"| explicit_data_new$Block_number_num == "5_A"| explicit_data_new$Block_number_num == "6_A" | explicit_data_new$Block_number_num == "7_A" | explicit_data_new$Block_number_num == "8_A" | explicit_data_new$Block_number_num == "9_A"| explicit_data_new$Block_number_num == "ten_A"),]
+p0_new_newplot
+
+vector_0 <- c("Block1","Block2","Block3","Block4","Block5","Block6","Block7","Block8","Block9","Block10")
+p0_new_newplot_anotherone <- p0_new_newplot
+p0_new_newplot_anotherone$blocktype <- vector_0
+p0_new_newplot_anotherone
+
+```
+```{r}
+new_labels <-  c("Block 1", "Block 2","Block 3","Block 4","Block 5","Block 6","Block 7","Block 8","Block 9","Block 10")
+
+p0_new <- ggplot(p0_new_newplot, aes(Block_number_num, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2)+
+  xlab("Block Number") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("A.   Training Data") +
+  theme_bw() +
+  theme(legend.position="right") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = new_labels)
+p0_new
+
+```
+#Lets keep only the A0 data here:
+```{r}
+p0_new_newplot2 <- explicit_data_new[!(explicit_data_new$Block_number_num == "1_AV" | explicit_data_new$Block_number_num == "2_AV" | explicit_data_new$Block_number_num == "3_AV" | explicit_data_new$Block_number_num == "4_AV"| explicit_data_new$Block_number_num == "5_AV"| explicit_data_new$Block_number_num == "6_AV" | explicit_data_new$Block_number_num == "7_AV" | explicit_data_new$Block_number_num == "8_AV" | explicit_data_new$Block_number_num == "9_AV"| explicit_data_new$Block_number_num == "ten_AV"),]
+p0_new_newplot2
+
+vector_1 <- c("Block1","Block2","Block3","Block4","Block5","Block6","Block7","Block8","Block9","Block10")
+p0_new_newplot2_anotherone <- p0_new_newplot2
+p0_new_newplot2_anotherone$blocktype <- vector_1
+p0_new_newplot2_anotherone
+```
+
+```{r}
+new_labels1 <-  c("Block 1", "Block 2","Block 3","Block 4","Block 5","Block 6","Block 7","Block 8","Block 9","Block 10")
+
+p0_new2 <- ggplot(p0_new_newplot2, aes(Block_number_num, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2)+
+  xlab("Block Number") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("A.   Testing Data") +
+  theme_bw() +
+  theme(legend.position="right") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = new_labels)
+p0_new2
+```
+##### USE THIS PLOT FOR THE REVIEWER COMMENT RESOLUTION. ITS PLOTS EVERYTHING IN ONE SPOT THEREBY MAKING EVERYTHING LOOK MUCH MORE ALIGNED!
+```{r}
+AV_AO_rbindagain <- rbind(p0_new_newplot_anotherone, p0_new_newplot2_anotherone)
+print(AV_AO_rbindagain)
+
+new_labels_again <-  c("Block 1", "Block 2","Block 3","Block 4","Block 5","Block 6","Block 7","Block 8","Block 9","Block 10")
+
+TESTING_DATA <- ggplot(AV_AO_rbindagain, aes(blocktype, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2.5)+
+  xlab("Block Number") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("A.   Explicit Learning: Median Response Time") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=40,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = new_labels_again) +
+  ylim(250, 1100) +
+  annotate("rect", xmin = 0.5, xmax = 1.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 5.5, xmax = 6.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 9.5, xmax = 10.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1, y=1090, label=paste("Block",1), color="black") +
+  annotate("text", x=6, y=1090, label=paste("Block",6), color="black") +
+  annotate("text", x=10, y=1090, label=paste("Block",10), color="black") +
+  annotate("text", x=10, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=3.5, y=1090, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=3.5, y=1040, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=8, y=1090, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=8, y=1040, label=paste("(Sequential)"), color="black") +
+   scale_color_manual(name="Phase:",
+                     labels=c("Testing Phase", "Training Phase"),
+                     values=c("red", "blue"))
+TESTING_DATA
+```
+
+```{r}
+x2_labels <-  c("","Block 1","","Block 2","","Block 3","","Block 4","","Block 5","","Block 6","","Block 7","","Block 8","","Block 9","","Block 10")
+
+p1 <- ggplot(explicit_data_new) +
+  geom_point(aes(x=Block_number_num, y=rt_avg, color = Part_Type), alpha = 10) +
+  geom_smooth(aes(x=Block_number_num, y=rt_avg, color = Part_Type)) +
+  xlab("Block Number") +
+  ylab("Median Reaction Time (msec)") +
+  ggtitle("Explicit Learning: Median Reaction Time-Avg. Across All Subjects") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_errorbar(mapping = aes(x=Block_number_num, ymin = rt_avg-sterr_avg, ymax = rt_avg+sterr_avg), colour="black", width=.4, size=0.5) +
+  scale_x_discrete(labels = x2_labels) +
+  ylim(250, 1100) +
+  annotate("rect", xmin = 0.5, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 10.5, xmax = 12.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 18.5, xmax = 20.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1.5, y=1090, label=paste("Block",1), color="black") +
+  annotate("text", x=11.5, y=1090, label=paste("Block",6), color="black") +
+  annotate("text", x=19.5, y=1090, label=paste("Block",10), color="black") +
+  annotate("text", x=19.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=11.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=1090, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=6, y=1040, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=15.5, y=1090, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=15.5, y=1040, label=paste("(Sequential)"), color="black") +
+   scale_color_manual(name="Part Type:",
+                     labels=c("Auditory Only", "Auditory+Visual"),
+                     values=c("red", "blue"))
+p1
+```
+#Plotting with standard error as a shade:
+```{r}
+new_plot_1_EL <- ggplot(explicit_data_new, aes(Block_number_num, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2)+
+  xlab("Block Number") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("A.   Explicit Learning: Median Response Time") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = x2_labels) +
+  ylim(250, 1100)+
+  annotate("rect", xmin = 0.5, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 10.5, xmax = 12.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 18.5, xmax = 20.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1.5, y=1090, label=paste("Block",1), color="black") +
+  annotate("text", x=11.5, y=1090, label=paste("Block",6), color="black") +
+  annotate("text", x=19.5, y=1090, label=paste("Block",10), color="black") +
+  annotate("text", x=19.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=11.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=1090, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=6, y=1040, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=15.5, y=1090, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=15.5, y=1040, label=paste("(Sequential)"), color="black") +
+   scale_color_manual(name="Phase:",
+                     labels=c("Testing Phase", "Training Phase"),
+                     values=c("red", "blue"))
+new_plot_1_EL
+```
+```{r}
+explicit_data_new
+
+explicit_data_seqonly <- explicit_data_new[!(explicit_data_new$Block_number_num == "1_A" | explicit_data_new$Block_number_num == "1_AV" | explicit_data_new$Block_number_num == "6_A" | explicit_data_new$Block_number_num == "6_AV"| explicit_data_new$Block_number_num == "ten_A"| explicit_data_new$Block_number_num == "ten_AV"),]
+print(explicit_data_seqonly)
+
+x2_labels_seq <-  c("","Block 2","","Block 3","","Block 4","","Block 5","","Block 7","","Block 8","","Block 9")
+
+p1_0 <- ggplot(explicit_data_seqonly) +
+  geom_point(aes(x=Block_number_num, y=rt_avg, color = Part_Type)) +
+  geom_smooth(aes(x=Block_number_num, y=rt_avg, color = Part_Type)) +
+  xlab("Block Number") +
+  ylab("Median Reaction Time (msec)") +
+  ggtitle("Explicit Learning: Median Reaction Time-Avg. Across All Subjects [Seq. Blocks]") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_errorbar(mapping = aes(x=Block_number_num, ymin = rt_avg-sterr_avg, ymax = rt_avg+sterr_avg), colour="black", width=.4, size=0.5) +
+  scale_x_discrete(labels = x2_labels_seq) +
+  ylim(250, 1000) +
+  scale_color_manual(name="Part Type:",
+                     labels=c("Auditory Only", "Auditory+Visual"),
+                     values=c("red", "blue"))
+p1_0
+```
+
+```{r}
+new_plot_1_EL_seq <- ggplot(explicit_data_seqonly, aes(Block_number_num, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2)+
+  xlab("Block Number (sequential)") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("B.   Explicit Learning: Median Response Time") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = x2_labels_seq) +
+  ylim(250, 1100) +
+  annotate("rect", xmin = .8, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1.6, y=1090, label=paste("Block",2), color="black") +
+  annotate("text", x=3.6, y=1090, label=paste("Block",3), color="black")+
+  annotate("rect", xmin = 4.8, xmax = 6.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4)+
+  annotate("text", x=5.6, y=1090, label=paste("Block",4), color="black")+
+  annotate("text", x=7.6, y=1090, label=paste("Block",5), color="black")+
+  annotate("rect", xmin = 8.8, xmax = 10.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4)+
+  annotate("text", x=9.6, y=1090, label=paste("Block",7), color="black")+
+  annotate("text", x=11.6, y=1090, label=paste("Block",8), color="black")+
+  annotate("rect", xmin = 12.8, xmax = 14.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4)+
+  annotate("text", x=13.6, y=1090, label=paste("Block",9), color="black")+
+  scale_color_manual(name="Phase:",
+                     labels=c("Testing Phase", "Training Phase"),
+                     values=c("red", "blue"))
+new_plot_1_EL_seq
+```
+```{r}
+#gridExtra::grid.arrange(new_plot_1_EL, new_plot_1_EL_seq, ncol=1)
+
+ggpubr::ggarrange(new_plot_1_EL, new_plot_1_EL_seq, 
+          labels = c("A", "B"),
+          ncol = 2, nrow = 2)
+
+
+```
+
+
+
+
+#Using ONLY the Audio Only data in for analysis (just checking to see what the distribution looks like):
+```{r}
+explicit_data
+RT_data_filtered_A <- filter(explicit_data, Part_Type == "Audio Only")
+RT_data_filtered_A
+
+ReactionTime_A <- RT_data_filtered_A$rt
+hist(ReactionTime_A, col = 'pink', breaks = 30, xlab = 'Reaction Time (ms)', main = 'Median Reaction Times of Audio Only Condition')
+
+plot(density(ReactionTime_A), xlab = 'Reaction Time (ms)', ylab = 'Density', main = 'Median Reaction Times of Audio Only Condition')
+
+curve(dnorm(x, mean = mean(ReactionTime_A), sd = sd(ReactionTime_A)), add = T, col = 'red')
+legend('topright', c('RT Distribution', 'Normal Distribution'), col = c('black', 'red'), lty = c(1, 1))
+```
+#Using ONLY the Audio+Visual data in for analysis (just checking to see what the distribution looks like):
+```{r}
+explicit_data
+RT_data_filtered_AV <- filter(explicit_data, Part_Type == "Audio+Video")
+RT_data_filtered_AV
+
+ReactionTime_AV <- RT_data_filtered_AV$rt
+hist(ReactionTime_AV, col = 'pink', breaks = 30, xlab = 'Reaction Time (ms)', main = 'Median Reaction Times of Audio+Visual Condition')
+
+plot(density(ReactionTime_AV), xlab = 'Reaction Time (ms)', ylab = 'Density', main = 'Median Reaction Times of Audio+Visual Condition')
+
+curve(dnorm(x, mean = mean(ReactionTime_AV), sd = sd(ReactionTime_AV)), add = T, col = 'red')
+legend('topright', c('RT Distribution', 'Normal Distribution'), col = c('black', 'red'), lty = c(1, 1))
+```
+
+##IMPLICIT LEARNING DATA VISUALIZATION:
+```{r}
+print(implicit_data)
+```
+
+```{r}
+x3_labels <- c("","Block 1","","Block 2","","Block 3","","Block 4","","Block 5","","Block 6","","Block 7","","Block 8","","Block 9","","Block 10")
+
+p0_0 <- ggplot(implicit_data) +
+  geom_point(aes(x=Block_number_num, y=rt, color = Part_Type), alpha = 10) +
+  geom_smooth(aes(x=Block_number_num, y=rt, color = Part_Type)) +
+  geom_violin(aes(x=Block_number_num, y=rt, color = Part_Type)) +
+  geom_jitter(aes(x=Block_number_num, y=rt, color = Part_Type)) +
+  xlab("Block Number") +
+  ylab("Median Reaction Time (msec)") +
+  ggtitle("Implicit Learning: Median Reaction Time-Across All Subjects") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+ theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = x3_labels) +
+  ylim(0, 1500) +
+  annotate("rect", xmin = 0.5, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 10.5, xmax = 12.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 18.5, xmax = 20.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=19.5, y=1500, label=paste("(Catch)"), color="black") +
+  annotate("text", x=11.5, y=1500, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1.5, y=1500, label=paste("(Catch)"), color="black") +
+  scale_color_manual(name="Part Type:",
+                     labels=c("Auditory Only", "Auditory+Visual"),
+                     values=c("red", "blue"))
+p0_0
+
+#Boxplot:
+boxplot(rt ~ Block_number_num, data = implicit_data, col = "pink", xlab = "Block Number", ylab = "Median Reaction Time (ms)", main = "Implicit Learning: Median Reaction Time (ms) - Across All Subjects", ylim = range(0:1500))
+```
+```{r}
+implicit_data_new <- implicit_data %>% 
+group_by(Block_number_num) %>%
+summarise_at(vars(rt, mean.rt, sd.rt, sterr),
+               list(avg = mean))
+print(implicit_data_new)
+
+#Using the code below for plotting purposes:
+vec2 <- c("Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual","Audio Only","Audio+Visual")
+implicit_data_new$Part_Type <- vec2
+implicit_data_new
+```
+```{r}
+x4_labels <- c("","Block 1","","Block 2","","Block 3","","Block 4","","Block 5","","Block 6","","Block 7","","Block 8","","Block 9","","Block 10")
+
+p1_1 <- ggplot(implicit_data_new) +
+  geom_point(aes(x=Block_number_num, y=rt_avg, color = Part_Type), alpha = 10) +
+  geom_smooth(aes(x=Block_number_num, y=rt_avg, color = Part_Type)) +
+  xlab("Block Number") +
+  ylab("Median Reaction Time (msec)") +
+  ggtitle("Implicit Learning: Median Reaction Time-Avg. Across All Subjects") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_errorbar(mapping = aes(x=Block_number_num, ymin = rt_avg-sterr_avg, ymax = rt_avg+sterr_avg), colour="black", width=.4, size=0.5) +
+  scale_x_discrete(labels = x4_labels) +
+  ylim(250, 1100) +
+  annotate("rect", xmin = 0.5, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 10.5, xmax = 12.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 18.5, xmax = 20.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1.5, y=1090, label=paste("Block",1), color="black") +
+  annotate("text", x=11.5, y=1090, label=paste("Block",6), color="black") +
+  annotate("text", x=19.5, y=1090, label=paste("Block",10), color="black") +
+  annotate("text", x=19.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=11.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=1090, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=6, y=1040, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=15.5, y=1090, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=15.5, y=1040, label=paste("(Sequential)"), color="black") +
+  scale_color_manual(name="Part Type:",
+                     labels=c("Auditory Only", "Auditory+Visual"),
+                     values=c("red", "blue"))
+p1_1
+```
+#Plotting with standard error as a shade:
+```{r}
+new_plot_1_IL <- ggplot(implicit_data_new, aes(Block_number_num, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2)+
+  xlab("Block Number") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("C.   Implicit Learning: Median Response Time") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = x4_labels) +
+  ylim(250, 1100)+
+  annotate("rect", xmin = 0.5, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 10.5, xmax = 12.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("rect", xmin = 18.5, xmax = 20.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1.5, y=1090, label=paste("Block",1), color="black") +
+  annotate("text", x=11.5, y=1090, label=paste("Block",6), color="black") +
+  annotate("text", x=19.5, y=1090, label=paste("Block",10), color="black") +
+  annotate("text", x=19.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=11.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=1.5, y=1040, label=paste("(Catch)"), color="black") +
+  annotate("text", x=6, y=1090, label=paste("Blocks (2-5)"), color="black") +
+  annotate("text", x=6, y=1040, label=paste("(Sequential)"), color="black") +
+  annotate("text", x=15.5, y=1090, label=paste("Blocks (7-9)"), color="black") +
+  annotate("text", x=15.5, y=1040, label=paste("(Sequential)"), color="black") +
+   scale_color_manual(name="Phase:",
+                     labels=c("Testing Phase", "Training Phase"),
+                     values=c("red", "blue"))
+new_plot_1_IL
+```
+```{r}
+implicit_data_new
+
+implicit_data_seqonly <- implicit_data_new[!(implicit_data_new$Block_number_num == "1_A" | implicit_data_new$Block_number_num == "1_AV" | implicit_data_new$Block_number_num == "6_A" | implicit_data_new$Block_number_num == "6_AV"| implicit_data_new$Block_number_num == "ten_A"| implicit_data_new$Block_number_num == "ten_AV"),]
+print(implicit_data_seqonly)
+
+x2_labels_seq <-  c("","Block 2","","Block 3","","Block 4","","Block 5","","Block 7","","Block 8","","Block 9")
+
+p1_1 <- ggplot(implicit_data_seqonly) +
+  geom_point(aes(x=Block_number_num, y=rt_avg, color = Part_Type)) +
+  geom_smooth(aes(x=Block_number_num, y=rt_avg, color = Part_Type)) +
+  xlab("Block Number") +
+  ylab("Median Reaction Time (msec)") +
+  ggtitle("Implicit Learning: Median Reaction Time-Avg. Across All Subjects [Seq. Blocks]") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_errorbar(mapping = aes(x=Block_number_num, ymin = rt_avg-sterr_avg, ymax = rt_avg+sterr_avg), colour="black", width=.4, size=0.5) +
+  scale_x_discrete(labels = x2_labels_seq) +
+  ylim(250, 1000) +
+  scale_color_manual(name="Part Type:",
+                     labels=c("Auditory Only", "Auditory+Visual"),
+                     values=c("red", "blue"))
+p1_1
+```
+
+```{r}
+new_plot_1_IL_seq <- ggplot(implicit_data_seqonly, aes(Block_number_num, rt_avg, group=Part_Type))+
+  geom_ribbon(aes(ymin=rt_avg-sterr_avg, ymax=rt_avg+sterr_avg, fill=Part_Type), show.legend = FALSE, alpha=0.3)+
+  geom_line(aes(color=Part_Type))+
+  geom_point(aes(color=Part_Type), size=2)+
+  xlab("Block Number (sequential)") +
+  ylab("Median Response Time (ms)") +
+  ggtitle("D.   Implicit Learning: Median Response Time") +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_discrete(labels = x2_labels_seq) +
+  ylim(250, 1100) +
+  annotate("rect", xmin = .8, xmax = 2.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4) +
+  annotate("text", x=1.6, y=1090, label=paste("Block",2), color="black") +
+  annotate("text", x=3.6, y=1090, label=paste("Block",3), color="black")+
+  annotate("rect", xmin = 4.8, xmax = 6.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4)+
+  annotate("text", x=5.6, y=1090, label=paste("Block",4), color="black")+
+  annotate("text", x=7.6, y=1090, label=paste("Block",5), color="black")+
+  annotate("rect", xmin = 8.8, xmax = 10.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4)+
+  annotate("text", x=9.6, y=1090, label=paste("Block",7), color="black")+
+  annotate("text", x=11.6, y=1090, label=paste("Block",8), color="black")+
+  annotate("rect", xmin = 12.8, xmax = 14.5,   ymin = -Inf, ymax = Inf, fill = "lightgrey", alpha=.4)+
+  annotate("text", x=13.6, y=1090, label=paste("Block",9), color="black")+
+  scale_color_manual(name="Phase:",
+                     labels=c("Testing Phase", "Training Phase"),
+                     values=c("red", "blue"))
+new_plot_1_IL_seq
+```

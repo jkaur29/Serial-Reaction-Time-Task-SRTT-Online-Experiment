@@ -1,0 +1,166 @@
+---
+title: "Reviewercomments_explicitdataonly_accuracy"
+author: "Jaskanwaljeet Kaur"
+date: "4/24/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#Loading libraries:
+```{r}
+library(lme4)
+library(broom)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+library(tidyverse)
+library(optimx)
+library(parallel)
+library(minqa)
+library(report)
+library(ggExtra)
+library(ggstatsplot)
+library(sjmisc)
+library(emmeans)
+library(hausekeep)
+library(lmerTest)
+library(standardize)
+```
+#We'll start by importing the explicit learning condition accuracy dataset:
+```{r}
+setwd("~/Desktop/Test SRT")
+explicit_data_acc <- read.csv("EL_Accuracy_data_for_analysis.csv")
+explicit_data_acc
+```
+#Let's center the data by substracting the mean:
+```{r}
+explicit_data_acc$block_centered.c <- explicit_data_acc$Block_number - mean(explicit_data_acc$Block_number)
+print(explicit_data_acc)
+```
+#Let's seperate the explicit learning data above into two datasets (training - AV and testing AO) so we can add a few things before modeling them:
+```{r}
+explicit_data_acc_split <- split(explicit_data_acc, explicit_data_acc$Part_Type)
+
+AV_data_acc <- explicit_data_acc_split$`Audio+Video`
+print(AV_data_acc)
+
+A0_data_acc <- explicit_data_acc_split$`Audio Only`
+print(A0_data_acc)
+```
+#We're going to get rid of the catch trials here and so that only the sequential trials remain in the explicit (AV-training) dataset:
+```{r}
+#This data gets rid of the catch trial rows in the dataset:
+AV_data_seq <- AV_data_acc[!(AV_data_acc$Block_number_num == "1_AV" | AV_data_acc$Block_number_num == "6_AV"| AV_data_acc$Block_number_num == "ten_AV"),]
+print(AV_data_seq)
+
+AV_data_seq <- AV_data_seq %>%
+  mutate(trialtype = "Sequential")
+AV_data_seq
+```
+#Here we're going to get rid of the sequential trials so that we are left with catch trials only:
+```{r}
+AV_data_catch <- AV_data_acc[!(AV_data_acc$Block_number_num == "2_AV" | AV_data_acc$Block_number_num == "3_AV" | AV_data_acc$Block_number_num == "4_AV" | AV_data_acc$Block_number_num == "5_AV"| AV_data_acc$Block_number_num == "7_AV"| AV_data_acc$Block_number_num == "8_AV" | AV_data_acc$Block_number_num == "9_AV"),]
+print(AV_data_catch)
+
+AV_data_catch <- AV_data_catch %>%
+  mutate(trialtype = "Catch")
+AV_data_catch
+```
+#Here we bind together the AV (training dataset) now that we have names the sequential and the catch trials:
+```{r}
+AV_data_acc_seq_catch <- rbind(AV_data_seq, AV_data_catch)
+print(AV_data_acc_seq_catch)
+```
+#Next, we're going to create a model using ONLY the AV data. This data also include sequential vs. random trials. This model should tell us the following: The sequential data is significantly different than the random/catch data.
+```{r}
+training_AV_model_only <- lmer(accuracy_int ~ trialtype + (1 | participant_id), data = AV_data_acc_seq_catch)
+
+report(training_AV_model_only)
+#emmeans to look at the three way interaction (pair-wise interactions; plot this as well.)
+summary(training_AV_model_only)
+#summaryh(training_AV_model_only)
+
+plot(training_AV_model_only)
+#Checking normality of residuals either via:
+#A Q-Q plot 
+qqnorm(resid(training_AV_model_only))
+qqline(resid(training_AV_model_only))
+#Or a histogram of residuals:
+hist(residuals(training_AV_model_only))
+```
+```{r}
+full_model_training <- lmer(accuracy_int ~ trialtype + (1 | participant_id), data = AV_data_acc_seq_catch)
+model_training <- lmer(accuracy_int ~ 1 + (1 | participant_id), data = AV_data_acc_seq_catch)
+
+anova(full_model_training,model_training)
+```
+
+```{r}
+library(sjPlot)
+sjPlot::plot_model(training_AV_model_only, show.values = TRUE, value.offset = .3, vline.color = "yellow", title = "Reaction Time Estimates", sort.est = TRUE)
+```
+```{r}
+sjPlot:: tab_model(training_AV_model_only,
+                   dv.labels= "Log Tranformed Reaction Time")
+```
+
+#A0 model analysis:
+```{r}
+A0_data_acc <- explicit_data_acc_split$`Audio Only`
+print(A0_data_acc)
+```
+```{r}
+#This data gets rid of the catch trial rows in the dataset:
+A0_data_seq <- A0_data_acc[!(A0_data_acc$Block_number_num == "1_A" | A0_data_acc$Block_number_num == "6_A"| A0_data_acc$Block_number_num == "ten_A"),]
+print(A0_data_seq)
+
+A0_data_seq <- A0_data_seq %>%
+  mutate(trialtype = "Sequential")
+A0_data_seq
+```
+```{r}
+A0_data_catch <- A0_data_acc[!(A0_data_acc$Block_number_num == "2_A" | A0_data_acc$Block_number_num == "3_A" | A0_data_acc$Block_number_num == "4_A" | A0_data_acc$Block_number_num == "5_A"| A0_data_acc$Block_number_num == "7_A"| A0_data_acc$Block_number_num == "8_A" | A0_data_acc$Block_number_num == "9_A"),]
+print(A0_data_catch)
+
+A0_data_catch <- A0_data_catch %>%
+  mutate(trialtype = "Catch")
+A0_data_catch
+```
+```{r}
+A0_data_seq_catch <- rbind(A0_data_seq, A0_data_catch)
+print(A0_data_seq_catch)
+```
+```{r}
+testing_AO_model_only <- lmer(accuracy_int ~ trialtype + (1 | participant_id), data = A0_data_seq_catch)
+
+report(testing_AO_model_only)
+#emmeans to look at the three way interaction (pair-wise interactions; plot this as well.)
+summary(testing_AO_model_only)
+#summaryh(training_AV_model_only)
+
+plot(testing_AO_model_only)
+#Checking normality of residuals either via:
+#A Q-Q plot 
+qqnorm(resid(testing_AO_model_only))
+qqline(resid(testing_AO_model_only))
+#Or a histogram of residuals:
+hist(residuals(testing_AO_model_only))
+```
+```{r}
+full_model_training_AO <- lmer(accuracy_int ~ trialtype + (1 | participant_id), data = A0_data_seq_catch)
+model1_training_AO <- lmer(accuracy_int ~ 1 + (1 | participant_id), data = A0_data_seq_catch)
+
+anova(full_model_training_AO,model1_training_AO)
+```
+```{r}
+library(sjPlot)
+sjPlot::plot_model(testing_AO_model_only, show.values = TRUE, value.offset = .3, vline.color = "yellow", title = "Reaction Time Estimates", sort.est = TRUE)
+```
+
+```{r}
+sjPlot:: tab_model(testing_AO_model_only,
+                   dv.labels= "Log Tranformed Reaction Time")
+```
+
