@@ -12,3 +12,6 @@ File 3: 3_implicitdataonly.Rmd: is used for analyzing the reaction time data ass
 File 4: 4_explicitdataonly.Rmd: is used for analyzing the reaction time data associated with the implicit learning condition; 
 File 5: Acc.Data.Viz.Rmd: Data visualization code to plot out accuracy across the different learning conditions; 
 File 6: Implicit+Explicit Data Visualization: Data Visualization code to plot out the accuracy across the different learning condtiions
+
+
+Additionally, I've added my python scripts, as I initially used python to visualize and analyze my datasets.
