@@ -1,5 +1,6 @@
-# Serial-Reaction-Time-Task-SRTT-Online-Experiment
-This the first project I completed as a PhD student. Due to COVID-19, the data for this project was acquired entirely online and it allowed us to study the effect of learning using the standard Serial Reaction Time Task (SRTT) in an online environment.
+# Serial Reaction Time Task (SRTT) Online Experiment
+
+This the first project I completed as a PhD student. Due to COVID-19, data for this project was acquired entirely online and it allowed us to study the effect of learning using the standard Serial Reaction Time Task (SRTT) in an online environment.
 
 The SRTT task was build using labs.js (https://lab.js.org/) and was deployed using Qualtrics online via the UC Merced SONA system. Subjects took part in the study and earned extra course credit after the completion of the task.
 
