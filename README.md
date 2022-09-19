@@ -2,7 +2,7 @@
 ______________
 This repository contains code associated with the following manuscript:
 
-Kaur, J., Balasubramaniam, R (2022). Sequence Learning in an Online Serial Reaction Time Task: The Effect of Task Instructions. (In press, accepted July 28, 2022).
+Kaur, J., Balasubramaniam, R (2022). Sequence Learning in an Online Serial Reaction Time Task: The Effect of Task Instructions. (https://doi.org/10.1123/jmld.2021-0064).
 ______________
 This the first project I completed as a PhD student. Due to COVID-19, data for this project was acquired entirely online and it allowed us to study the effect of learning using the standard Serial Reaction Time Task (SRTT) in an online environment.
 
